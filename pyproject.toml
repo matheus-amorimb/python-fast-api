@@ -31,7 +31,7 @@ lint = 'ruff . && blue --check . --diff'
 format = 'blue . && isort .'
 run = 'uvicorn src.main:app --reload'
 pre_test = 'task lint'
-test = 'pytest -s -x --cov=main -vv'
+test = 'pytest -s -x --cov=src -vv'
 post_test = 'coverage html'
 
 
