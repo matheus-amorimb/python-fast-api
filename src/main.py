@@ -1,39 +1,61 @@
-import random
+from fastapi import FastAPI, HTTPException, Response, status
 
-from fastapi import FastAPI
-
-from src.schemas import PostSchema
+from src.schemas import Message, PostDB, PostPublic, PostSchema, PostList
 
 app = FastAPI()
 
-my_posts = [
-    {'title': 'title of post 1', 'content': 'content of post 1', 'id': 1},
-    {'title': 'title of post 2', 'content': 'content of post 2', 'id': 2},
-]
+my_posts = []
 
 
-@app.get('/')
-def root():
-    return {'message': 'hello world'}
-
-
-@app.post('/posts')
-def create_post(post: PostSchema):
-    post_dict = post.model_dump()
-    post_dict['id'] = random.randrange(1, 10000001)
-    my_posts.append(post_dict)
-    return {'data': post_dict}
-
-
-@app.get('/posts')
+@app.get('/posts', response_model=PostList)
 def get_posts():
-    return {'data': my_posts}
+    return {'users': my_posts}
 
 
-@app.get('/posts/{id}')
-def get_post(id):
+@app.get('/posts/{post_id}')
+def get_post(post_id: int):
     for post in my_posts:
-        if post['id'] == int(id):
-            return {'data': post}
+        if post.id == post_id:
+            return post
     else:
-        return {'data': None}
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'post with post_id {post_id} was not found',
+        )
+
+
+@app.post('/posts', status_code=status.HTTP_201_CREATED, response_model= PostPublic)
+def create_post(post: PostSchema):
+
+    post_with_id = PostDB(**post.model_dump(), id=len(my_posts) + 1)
+
+    my_posts.append(post_with_id)
+
+    return post_with_id
+
+
+@app.delete('/posts/{post_id}', response_model= Message)
+def delete_post(post_id: int):
+    if post_id > len(my_posts) or post_id < 1:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail='Post with id {post_id} not found'
+            )
+
+    # post = my_posts[post_id - 1]
+
+    del my_posts[post_id - 1]
+    
+    return {'detail': 'User deleted'}
+
+
+@app.put('/posts/{post_id}', response_model=PostPublic)
+def update_post(post_id: int, post: PostSchema):
+    if post_id > len(my_posts) or post_id < 1:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail='Post with id {post_id} not found'
+            )
+    
+    post_with_id = PostDB(**post.model_dump(), id=post_id)
+    my_posts[post_id - 1] = post_with_id
+
+    return post_with_id

@@ -1,7 +1,24 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 
 class PostSchema(BaseModel):
     title: str
     content: str
-    id: int = None
+    password: str
+
+
+class PostPublic(BaseModel):
+    title: str
+    content: str
+
+
+class PostDB(PostSchema):
+    id: int
+
+
+class Message(BaseModel):
+    detail: str
+
+
+class PostList(BaseModel):
+    users: list[PostPublic]
