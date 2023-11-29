@@ -39,6 +39,18 @@ def test_get_posts(client):
     }
 
 
+def test_get_post(client):
+    response = client.get('/posts/1')
+
+    assert response.status_code == 200
+    assert response.json() == {
+        'post': {
+            'title': 'Minha primeira API',
+            'content': 'Como foi construir minha primeira API',
+        }
+    }
+
+
 def test_put_post(client):
     data = {
         'title': 'Minha primeira FastAPI',

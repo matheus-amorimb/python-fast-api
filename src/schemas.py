@@ -22,3 +22,7 @@ class Message(BaseModel):
 
 class PostList(BaseModel):
     posts: list[PostPublic]
+
+
+class Post(BaseModel):
+    post: PostPublic
