@@ -1,37 +1,62 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from src.main import app
 
 
-def test_root_deve_retornar_200_e_ola_mundo():
-    client = TestClient(app)
-
-    response = client.get('/')
-
-    assert response.status_code == 200
-    assert response.json() == {'message': 'hello world'}
+@pytest.fixture
+def client():
+    return TestClient(app)
 
 
-def test_get_posts_deve_retornar_200_e_this_is_your_post():
-    client = TestClient(app)
+def test_create_post(client):
+    data = {
+        'title': 'Minha primeira API',
+        'content': 'Como foi construir minha primeira API',
+        'password': 'abcd',
+    }
 
+    response = client.post('/posts/', json=data)
+
+    assert response.status_code == 201
+    assert response.json() == {
+        'title': 'Minha primeira API',
+        'content': 'Como foi construir minha primeira API',
+    }
+
+
+def test_get_posts(client):
     response = client.get('/posts')
 
     assert response.status_code == 200
-    assert response.json() == {'data': 'This is your post'}
-
-
-def test_post_deve_retornar_200_e_new_post():
-    client = TestClient(app)
-
-    data = {
-        'title': 'Minha primeira API',
-        'content': 'Como foi minha primeira viagem',
-        'published': 'True',
-        'rating': '10',
+    assert response.json() == {
+        'posts': [
+            {
+                'title': 'Minha primeira API',
+                'content': 'Como foi construir minha primeira API',
+            }
+        ]
     }
 
-    response = client.post('/createposts', json=data)
+
+def test_put_post(client):
+    data = {
+        'title': 'Minha primeira FastAPI',
+        'content': 'Como foi construir minha primeira FastAPI',
+        'password': 'abcde',
+    }
+
+    response = client.put('/posts/1', json=data)
 
     assert response.status_code == 200
-    assert response.json() == {'data': 'new post'}
+    assert response.json() == {
+        'title': 'Minha primeira FastAPI',
+        'content': 'Como foi construir minha primeira FastAPI',
+    }
+
+
+def test_delete_post(client):
+    response = client.delete('/posts/1')
+
+    assert response.status_code == 200
+    assert response.json() == {'detail': 'Post deleted'}

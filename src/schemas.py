@@ -21,4 +21,4 @@ class Message(BaseModel):
 
 
 class PostList(BaseModel):
-    users: list[PostPublic]
+    posts: list[PostPublic]
