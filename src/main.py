@@ -1,34 +1,39 @@
-from typing import Optional
+import random
 
 from fastapi import FastAPI
 
-# from fastapi.params import Body
-from pydantic import BaseModel
+from src.schemas import PostSchema
 
 app = FastAPI()
 
-
-class Post(BaseModel):
-    title: str
-    content: str
-    published: bool = True
-    rating: Optional[int] = None
+my_posts = [
+    {'title': 'title of post 1', 'content': 'content of post 1', 'id': 1},
+    {'title': 'title of post 2', 'content': 'content of post 2', 'id': 2},
+]
 
 
 @app.get('/')
-async def root():
+def root():
     return {'message': 'hello world'}
+
+
+@app.post('/posts')
+def create_post(post: PostSchema):
+    post_dict = post.model_dump()
+    post_dict['id'] = random.randrange(1, 10000001)
+    my_posts.append(post_dict)
+    return {'data': post_dict}
 
 
 @app.get('/posts')
 def get_posts():
-    return {'data': 'This is your post'}
+    return {'data': my_posts}
 
 
-@app.post('/createposts')
-def create_posts(new_post: Post):
-    print(new_post.model_dump())
-    # print(new_post.title)
-    # print(new_post.content)
-    # print(new_post.published)
-    return {'data': 'new post'}
+@app.get('/posts/{id}')
+def get_post(id):
+    for post in my_posts:
+        if post['id'] == int(id):
+            return {'data': post}
+    else:
+        return {'data': None}
