@@ -1,19 +1,24 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
 class PostSchema(BaseModel):
     title: str
     content: str
-    password: str
+    published: bool
 
 
 class PostPublic(BaseModel):
     title: str
     content: str
+    published: bool
+    created_at: datetime
 
 
 class PostDB(PostSchema):
     id: int
+    created_at: datetime
 
 
 class Message(BaseModel):
