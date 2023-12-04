@@ -4,7 +4,7 @@ import psycopg2
 from fastapi import FastAPI, HTTPException, status
 from psycopg2.extras import RealDictCursor
 
-from src.schemas import Message, Post, PostDB, PostList, PostPublic, PostSchema
+from src.schemas import Message, Post, PostList, PostPublic, PostSchema
 
 config = {
     'database': {
@@ -34,7 +34,7 @@ while True:
         break
     except Exception as error:
         print('Connecting to database failed')
-        print('Error: {error}')
+        print(f'Error: {error}')
         time.sleep(2)
 
 app = FastAPI()
@@ -52,10 +52,12 @@ def create_post(post: PostSchema):
             (%s, %s, %s)
         RETURNING *            
         """,
-        (post.title, post.content, post.published)
+        (post.title, post.content, post.published),
     )
-    
+
     new_post = cursor.fetchone()
+
+    conn.commit()
 
     return new_post
 
@@ -74,9 +76,19 @@ def get_posts():
 
 @app.get('/posts/{post_id}', response_model=Post)
 def get_post(post_id: int):
-    for post in my_posts:
-        if post.id == post_id:
-            return {'post': post}
+    cursor.execute(
+        """
+        SELECT *
+        FROM posts
+        WHERE id = %s
+        """,
+        (post_id,),
+    )
+
+    post = cursor.fetchone()
+
+    if post:
+        return {'post': post}
     else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -86,32 +98,48 @@ def get_post(post_id: int):
 
 @app.put('/posts/{post_id}', response_model=PostPublic)
 def update_post(post_id: int, post: PostSchema):
-    if check_id(post_id):
+    cursor.execute(
+        """
+        UPDATE posts
+        SET
+            content = %s
+        WHERE id = %s
+        RETURNING *
+        """,
+        (post.content, post_id),
+    )
+
+    post_updated = cursor.fetchone()
+
+    if post_updated:
+        conn.commit()
+        return post_updated
+    else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Post with id {post_id} not found',
         )
-
-    post_with_id = PostDB(**post.model_dump(), id=post_id)
-    my_posts[post_id - 1] = post_with_id
-
-    return post_with_id
 
 
 @app.delete('/posts/{post_id}', response_model=Message)
 def delete_post(post_id: int):
-    if check_id(post_id):
+    cursor.execute(
+        """
+        DELETE
+        FROM posts
+        WHERE id = %s
+        RETURNING *
+        """,
+        (post_id,),
+    )
+
+    post_delated = cursor.fetchone()
+
+    if post_delated:
+        conn.commit()
+        return {'detail': 'Post deleted'}
+    else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Post with id {post_id} not found',
         )
-
-    # post = my_posts[post_id - 1]
-
-    del my_posts[post_id - 1]
-
-    return {'detail': 'Post deleted'}
-
-
-def check_id(post_id):
-    return post_id > len(my_posts) or post_id < 1

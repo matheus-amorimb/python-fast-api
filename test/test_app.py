@@ -13,7 +13,7 @@ def test_create_post(client):
     data = {
         'title': 'Minha primeira API',
         'content': 'Como foi construir minha primeira API',
-        'password': 'abcd',
+        'published': True,
     }
 
     response = client.post('/posts/', json=data)
@@ -22,6 +22,7 @@ def test_create_post(client):
     assert response.json() == {
         'title': 'Minha primeira API',
         'content': 'Como foi construir minha primeira API',
+        'published': True,
     }
 
 
@@ -34,6 +35,7 @@ def test_get_posts(client):
             {
                 'title': 'Minha primeira API',
                 'content': 'Como foi construir minha primeira API',
+                'published': True,
             }
         ]
     }
@@ -47,6 +49,7 @@ def test_get_post(client):
         'post': {
             'title': 'Minha primeira API',
             'content': 'Como foi construir minha primeira API',
+            'published': True,
         }
     }
 
@@ -55,7 +58,7 @@ def test_put_post(client):
     data = {
         'title': 'Minha primeira FastAPI',
         'content': 'Como foi construir minha primeira FastAPI',
-        'password': 'abcde',
+        'published': True,
     }
 
     response = client.put('/posts/1', json=data)
@@ -64,6 +67,7 @@ def test_put_post(client):
     assert response.json() == {
         'title': 'Minha primeira FastAPI',
         'content': 'Como foi construir minha primeira FastAPI',
+        'published': True,
     }
 
 
