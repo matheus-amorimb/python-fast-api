@@ -117,7 +117,7 @@ def update_post(post_id: int, post: PostSchema):
     else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail='Post with id {post_id} not found',
+            detail=f'Post with id {post_id} not found',
         )
 
 
@@ -141,5 +141,5 @@ def delete_post(post_id: int):
     else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail='Post with id {post_id} not found',
+            detail=f'Post with id {post_id} not found',
         )
